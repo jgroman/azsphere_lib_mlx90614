@@ -1,0 +1,15 @@
+{
+  "SchemaVersion": 1,
+  "Name" : "lib_mlx90614_example",
+  "ComponentId" : "8b1d5bfa-ac8c-4963-8b5b-19121c3ce6dd",
+  "EntryPoint": "/bin/app",
+  "CmdArgs": [],
+  "Capabilities": {
+    "AllowedConnections": [],
+    "Gpio": [],
+    "I2cMaster": [ "$PROJECT_ISU2_I2C" ],
+    "Uart": [],
+    "WifiConfig": false
+  },
+  "ApplicationType":"Default"
+}
