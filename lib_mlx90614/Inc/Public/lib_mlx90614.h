@@ -21,33 +21,36 @@ extern "C" {
 
 #include <applibs/i2c.h>
 
+// Uncomment line below to enable debugging messages
+#define MLX90614_DEBUG
+
 #define MLX90614_I2C_ADDRESS    0x5A
 
 // RAM cells
-#define MLX90614_RAWIR1         0x04    // Raw data IR channel 1
-#define MLX90614_RAWIR2         0x05    // Raw data IR channel 2
-#define MLX90614_TA             0x06
-#define MLX90614_TOBJ1          0x07
-#define MLX90614_TOBJ2          0x08
+#define MLX90614_RREG_RAWIR1         0x04  // Raw data IR channel 1
+#define MLX90614_RREG_RAWIR2         0x05  // Raw data IR channel 2
+#define MLX90614_RREG_TA             0x06
+#define MLX90614_RREG_TOBJ1          0x07
+#define MLX90614_RREG_TOBJ2          0x08
 
 // EEPROM cells
 // Note: A write of 0x0000 must be done prior to writing in EEPROM in order 
 // to erase the EEPROM cell content
-#define MLX90614_TOMAX          0x20
-#define MLX90614_TOMIN          0x21
-#define MLX90614_PWMCTRL        0x22
-#define MLX90614_TA_RANGE       0x23
-#define MLX90614_ECC            0x24    // Emissivity correction coefficient
-#define MLX90614_CONF1          0x25    // Config Register 1
-#define MLX90614_SMBUS_ADDR     0x2E    // SMBus address (LSByte only)
-#define MLX90614_ID1            0x3C
-#define MLX90614_ID2            0x3D
-#define MLX90614_ID3            0x3E
-#define MLX90614_ID4            0x3F
+#define MLX90614_EREG_TOMAX          0x20
+#define MLX90614_EREG_TOMIN          0x21
+#define MLX90614_EREG_PWMCTRL        0x22
+#define MLX90614_EREG_TA_RANGE       0x23
+#define MLX90614_EREG_ECC            0x24  // Emissivity correction coefficient
+#define MLX90614_EREG_CONF1          0x25  // Config Register 1
+#define MLX90614_EREG_SMBUS_ADDR     0x2E  // SMBus address (LSByte only)
+#define MLX90614_EREG_ID1            0x3C
+#define MLX90614_EREG_ID2            0x3D
+#define MLX90614_EREG_ID3            0x3E
+#define MLX90614_EREG_ID4            0x3F
 
 // Special commands
-#define MLX90614_READ_FLAGS     0xF0
-#define MLX90614_SLEEP_MODE     0xFF
+#define MLX90614_CMD_READ_FLAGS      0xF0
+#define MLX90614_CMD_SLEEP_MODE      0xFF
 
 // READ_FLAGS bitfields
 typedef struct
@@ -167,14 +170,28 @@ typedef struct
 #define CONF1_FIR_512   6   // FIR = 512
 #define CONF1_FIR_1024  7   // FIR = 1024
 
+typedef enum {
+    MLX_TEMP_RAW,
+    MLX_TEMP_K,
+    MLX_TEMP_C,
+    MLX_TEMP_F
+} mlx_temp;
 
-typedef struct mlx90614_struct mlx90614_t;
-
-struct mlx90614_struct
+typedef struct mlx90614_struct
 {
     int i2c_fd;                     // I2C interface file descriptor
     I2C_DeviceAddress i2c_addr;     // I2C device address
-};
+} mlx90614_t;
+
+mlx90614_t
+*mlx90614_open(int i2c_fd, I2C_DeviceAddress i2c_addr);
+
+void
+mlx90614_close(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_id(mlx90614_t *p_mlx, uint16_t *p_arr_id);
+
 
 #ifdef __cplusplus
 }

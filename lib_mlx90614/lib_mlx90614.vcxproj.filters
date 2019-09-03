@@ -18,9 +18,15 @@
     <ClCompile Include="lib_mlx90614.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mlx90614_support.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Inc\Public\lib_mlx90614.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mlx90614_support.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

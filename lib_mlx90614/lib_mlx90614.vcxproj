@@ -47,7 +47,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="lib_mlx90614.c" />
+    <ClCompile Include="mlx90614_support.c" />
     <ClInclude Include="Inc\Public\lib_mlx90614.h" />
+    <ClInclude Include="mlx90614_support.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
