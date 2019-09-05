@@ -106,11 +106,11 @@ eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value)
     delay_time.tv_sec = 0;
 
     bool b_result = reg_write(p_mlx, reg_addr, 0);
+    delay_time.tv_nsec = MLX90614_T_ERASE_MS * 1000000;
+    nanosleep(&delay_time, NULL);   // Wait for EEPROM to erase
+
     if (b_result)
     {
-        delay_time.tv_nsec = MLX90614_T_ERASE_MS * 1000000;
-        nanosleep(&delay_time, NULL);   // Wait for EEPROM to erase
-
         b_result = reg_write(p_mlx, reg_addr, reg_value);
         delay_time.tv_nsec = MLX90614_T_WRITE_MS * 1000000;
         nanosleep(&delay_time, NULL);   // Wait for EEPROM to write new value

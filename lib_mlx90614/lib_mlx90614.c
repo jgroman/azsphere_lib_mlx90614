@@ -81,7 +81,7 @@ mlx90614_close(mlx90614_t *p_mlx)
 }
 
 bool
-mlx90614_read_id(mlx90614_t *p_mlx, uint16_t *p_arr_id)
+mlx90614_read_id(mlx90614_t *p_mlx)
 {
     uint16_t reg_value;
     bool b_result = false;
@@ -95,7 +95,96 @@ mlx90614_read_id(mlx90614_t *p_mlx, uint16_t *p_arr_id)
             break;
         }
 
-        p_arr_id[idx] = reg_value;
+        p_mlx->device_id[idx] = reg_value;
+    }
+
+    return b_result;
+}
+
+bool
+mlx90614_read_tobj1(mlx90614_t *p_mlx)
+{
+    int16_t tobj1;
+
+    bool b_result = reg_read(p_mlx, MLX90614_RREG_TOBJ1, &tobj1);
+
+    if (b_result)
+    {
+        if (tobj1 & 0x8000)
+        {
+            b_result = false;
+        }
+        else
+        {
+            p_mlx->tobj1 = tobj1;
+        }
+    }
+
+    return b_result;
+}
+
+bool
+mlx90614_read_tobj2(mlx90614_t *p_mlx)
+{
+    int16_t tobj2;
+
+    bool b_result = reg_read(p_mlx, MLX90614_RREG_TOBJ2, &tobj2);
+
+    if (b_result)
+    {
+        if (tobj2 & 0x8000)
+        {
+            b_result = false;
+        }
+        else
+        {
+            p_mlx->tobj2 = tobj2;
+        }
+    }
+
+    return b_result;
+}
+
+bool
+mlx90614_read_ta(mlx90614_t *p_mlx)
+{
+    int16_t ta;
+
+    bool b_result = reg_read(p_mlx, MLX90614_RREG_TA, &ta);
+
+    if (b_result)
+    {
+        p_mlx->tobj2 = ta;
+    }
+
+    return b_result;
+}
+
+bool
+mlx90614_read_tomax(mlx90614_t *p_mlx)
+{
+    int16_t tomax;
+
+    bool b_result = reg_read(p_mlx, MLX90614_EREG_TOMAX, &tomax);
+
+    if (b_result)
+    {
+        p_mlx->tomax = tomax;
+    }
+
+    return b_result;
+}
+
+bool
+mlx90614_read_tomin(mlx90614_t *p_mlx)
+{
+    int16_t tomin;
+
+    bool b_result = reg_read(p_mlx, MLX90614_EREG_TOMIN, &tomin);
+
+    if (b_result)
+    {
+        p_mlx->tomin = tomin;
     }
 
     return b_result;

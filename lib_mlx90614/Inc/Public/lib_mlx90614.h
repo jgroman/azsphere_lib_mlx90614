@@ -181,6 +181,15 @@ typedef struct mlx90614_struct
 {
     int i2c_fd;                     // I2C interface file descriptor
     I2C_DeviceAddress i2c_addr;     // I2C device address
+
+    uint16_t device_id[4];
+
+    int16_t tobj1;
+    int16_t tobj2;
+    int16_t ta;
+    int16_t tomax;
+    int16_t tomin;
+
 } mlx90614_t;
 
 mlx90614_t
@@ -190,7 +199,22 @@ void
 mlx90614_close(mlx90614_t *p_mlx);
 
 bool
-mlx90614_read_id(mlx90614_t *p_mlx, uint16_t *p_arr_id);
+mlx90614_read_id(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_tobj1(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_tobj2(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_ta(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_tomax(mlx90614_t *p_mlx);
+
+bool
+mlx90614_read_tomin(mlx90614_t *p_mlx);
 
 
 #ifdef __cplusplus
