@@ -88,7 +88,8 @@ mlx90614_read_id(mlx90614_t *p_mlx)
 
     for (register uint8_t idx = 0; idx < 4; idx++)
     {
-        b_result = reg_read(p_mlx, (uint8_t)(MLX90614_EREG_ID1 + idx), &reg_value);
+        b_result = reg_read(p_mlx, (uint8_t)(MLX90614_EREG_ID1 + idx), 
+            &reg_value);
 
         if (!b_result)
         {
@@ -189,6 +190,35 @@ mlx90614_read_tomin(mlx90614_t *p_mlx)
 
     return b_result;
 }
+
+bool
+mlx90614_read_ecc(mlx90614_t *p_mlx, float *p_emmisivity)
+{
+    int16_t ecc
+
+    bool b_result = reg_read(p_mlx, MLX90614_EREG_ECC, &ecc);
+
+    if (b_result)
+    {
+        *p_emmisivity = (float)ecc / 65535.0;
+    }
+    return b_result;
+}
+
+bool
+mlx90614_read_address(mlx90614_t *p_mlx, uint8_t *p_address)
+{
+    uint16_t addr;
+
+    bool b_result = reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &addr);
+
+    if (b_result)
+    {
+        *p_address = (uint8_t) addr & 0xFF;
+    }
+    return b_result;
+}
+
 
 /*******************************************************************************
 * Private function definitions
