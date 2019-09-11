@@ -178,24 +178,28 @@ typedef struct
 #define CONF1_FIR_1024    7   // FIR = 1024
 
 typedef enum {
-    MLX_TEMP_RAW,
+    MLX_TEMP_LINEARIZED,
     MLX_TEMP_KELVIN,
     MLX_TEMP_CELSIUS,
     MLX_TEMP_FAHRENHEIT
-} mlx_temp;
+} mlx_temperature_unit;
 
 typedef struct mlx90614_struct
 {
     int i2c_fd;                     // I2C interface file descriptor
     I2C_DeviceAddress i2c_addr;     // I2C device address
 
-    uint16_t device_id[4];
+    mlx_temperature_unit temperature_unit;
+
+    uint16_t device_id[4];          // 4x word Device ID
 
     int16_t tobj1;
     int16_t tobj2;
     int16_t ta;
+
     int16_t tomax;
     int16_t tomin;
+    uint16_t ta_range;
 
 } mlx90614_t;
 
@@ -205,23 +209,17 @@ mlx90614_t
 void
 mlx90614_close(mlx90614_t *p_mlx);
 
-bool
-mlx90614_read_id(mlx90614_t *p_mlx);
+void
+mlx90614_set_temperature_unit(mlx90614_t *p_mlx, mlx_temperature_unit unit);
 
 bool
-mlx90614_read_tobj1(mlx90614_t *p_mlx);
+mlx90614_get_emissivity(mlx90614_t *p_mlx, float *p_emmisivity);
 
 bool
-mlx90614_read_tobj2(mlx90614_t *p_mlx);
+mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity);
 
 bool
-mlx90614_read_ta(mlx90614_t *p_mlx);
-
-bool
-mlx90614_read_tomax(mlx90614_t *p_mlx);
-
-bool
-mlx90614_read_tomin(mlx90614_t *p_mlx);
+mlx90614_get_id(mlx90614_t *p_mlx);
 
 
 #ifdef __cplusplus

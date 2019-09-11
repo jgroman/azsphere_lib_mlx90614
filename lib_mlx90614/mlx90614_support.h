@@ -29,13 +29,13 @@ int
 log_printf(const char *p_format, ...);
 
 bool
-reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t *p_reg_value);
+reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value);
 
 bool
-reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value);
+reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 
 bool
-eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value);
+eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 
 #ifdef __cplusplus
 }

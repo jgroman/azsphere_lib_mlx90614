@@ -45,7 +45,7 @@ log_printf(const char *p_format, ...)
 }
 
 bool
-reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t *p_reg_value)
+reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value)
 {
     // 2 byte register data is followed by 1 byte PEC - Packet Error Code
     // The PEC calculation includes all bits except the START, REPEATED START, 
@@ -66,7 +66,7 @@ reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t *p_reg_value)
 
         if (buffer[2] == crc)       // PEC
         {
-            *p_reg_value = (uint16_t)((buffer[1] << 8) | buffer[0]);
+            *p_reg_value = (int16_t)((buffer[1] << 8) | buffer[0]);
             b_result = true;
         }
     }
@@ -75,7 +75,7 @@ reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t *p_reg_value)
 }
 
 bool
-reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value)
+reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
 {
     bool b_result = false;
     uint8_t buffer[3];  // LSB, MSB, CRC
@@ -97,7 +97,7 @@ reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value)
 }
 
 bool
-eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, uint16_t reg_value)
+eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
 {
     // Note: A write of 0x0000 must be done prior to writing in EEPROM in order 
     // to erase the EEPROM cell content
