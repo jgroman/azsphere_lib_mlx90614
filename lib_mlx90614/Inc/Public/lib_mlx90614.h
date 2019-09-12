@@ -46,7 +46,7 @@ extern "C" {
 #define MLX90614_EREG_TOMAX          0x20  // TOBJ range max
 #define MLX90614_EREG_TOMIN          0x21  // TOBJ range min
 #define MLX90614_EREG_PWMCTRL        0x22  // PWM Control
-#define MLX90614_EREG_TA_RANGE       0x23  // TA Range bytes
+#define MLX90614_EREG_TA_RANGE       0x23  // TA Range, MSB:max, LSB:min
 #define MLX90614_EREG_ECC            0x24  // Emissivity correction coefficient
 #define MLX90614_EREG_CONF1          0x25  // Config Register 1
 #define MLX90614_EREG_SMBUS_ADDR     0x2E  // SMBus address (LSByte only)
@@ -58,6 +58,13 @@ extern "C" {
 // Special commands
 #define MLX90614_CMD_READ_FLAGS      0xF0
 #define MLX90614_CMD_SLEEP_MODE      0xFF
+
+
+// Value to indicate error when processing temperature measurement
+#define MLX90614_TEMP_ERROR         -999.9
+
+// Value to indicate error when processing emissivity
+#define MLX90614_EMISSIVITY_ERROR   -1.0
 
 // READ_FLAGS bitfields
 typedef struct
@@ -125,7 +132,7 @@ typedef struct
     {
         struct
         {
-            
+            // IIR filter parameter set
             uint8_t IIR : 3;
 
             // DO NOT MODIFY! This will cancel the factory calibration.
@@ -139,6 +146,7 @@ typedef struct
             // DO NOT MODIFY
             uint8_t KS_SIGN : 1;
 
+            // FIR filter parameter set
             uint8_t FIR : 3;
 
             // DO NOT MODIFY
@@ -186,26 +194,26 @@ typedef enum {
 
 typedef struct mlx90614_struct
 {
-    int i2c_fd;                     // I2C interface file descriptor
-    I2C_DeviceAddress i2c_addr;     // I2C device address
-
-    mlx_temperature_unit temperature_unit;
-
-    uint16_t device_id[4];          // 4x word Device ID
-
-    int16_t tobj1;
-    int16_t tobj2;
-    int16_t ta;
-
-    int16_t tomax;
-    int16_t tomin;
-    uint16_t ta_range;
-
+    int i2c_fd;                             // I2C interface file descriptor
+    I2C_DeviceAddress i2c_addr;             // I2C device address
+    uint16_t device_id[4];                  // 4x word Device ID
+    mlx_temperature_unit temperature_unit;  // Temperature measurement unit
 } mlx90614_t;
 
+/**
+ * @brief Initialize MLX90614 sensor.
+ * @param i2c_fd I2C interface file descriptor.
+ * @param i2c_addr Sensor I2C address.
+ *
+ * @return Pointer to MLX90614 device descriptor.
+ */
 mlx90614_t
 *mlx90614_open(int i2c_fd, I2C_DeviceAddress i2c_addr);
 
+/**
+ * @brief Disables sensor and frees allocated resources.
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ */
 void
 mlx90614_close(mlx90614_t *p_mlx);
 
@@ -213,13 +221,50 @@ void
 mlx90614_set_temperature_unit(mlx90614_t *p_mlx, mlx_temperature_unit unit);
 
 bool
-mlx90614_get_emissivity(mlx90614_t *p_mlx, float *p_emmisivity);
+mlx90614_get_id(mlx90614_t *p_mlx);
+
+I2C_DeviceAddress
+mlx90614_get_address(mlx90614_t *p_mlx);
+
+bool
+mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address);
+
+float
+mlx90614_get_temperature_object1(mlx90614_t *p_mlx);
+
+float
+mlx90614_get_temperature_object2(mlx90614_t *p_mlx);
+
+float
+mlx90614_get_temperature_ambient(mlx90614_t *p_mlx);
+
+float
+mlx90614_get_emissivity(mlx90614_t *p_mlx);
 
 bool
 mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity);
 
+
+// The following functions are useful only in PWM mode
+// Range params are used for customizing the temperature range for PWM output
+
+float
+mlx90614_get_tobj_range_min(mlx90614_t *p_mlx);
+
 bool
-mlx90614_get_id(mlx90614_t *p_mlx);
+mlx90614_set_tobj_range_min(mlx90614_t *p_mlx, float t_min);
+
+float
+mlx90614_get_tobj_range_max(mlx90614_t *p_mlx);
+
+bool
+mlx90614_set_tobj_range_max(mlx90614_t *p_mlx, float t_max);
+
+float
+mlx90614_get_ta_range_min(mlx90614_t *p_mlx);
+
+float
+mlx90614_get_ta_range_max(mlx90614_t *p_mlx);
 
 
 #ifdef __cplusplus

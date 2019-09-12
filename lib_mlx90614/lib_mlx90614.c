@@ -4,7 +4,8 @@
 *
 * @brief MLX90614 IR sensor support for Azure Sphere.
 *
-* Code ported from https://github.com/sparkfun/SparkFun_MLX90614_Arduino_Library
+* Code ported and modified 
+* from https://github.com/sparkfun/SparkFun_MLX90614_Arduino_Library
 * by Jim Lindblom @ SparkFun Electronics
 *
 * @author   Jaroslav Groman
@@ -29,27 +30,11 @@
 * Forward declarations of private functions
 *******************************************************************************/
 
-bool
-get_tobj1(mlx90614_t *p_mlx);
+static int16_t
+convert_temp_unit_to_linear(float united_temp, mlx_temperature_unit unit);
 
-bool
-get_tobj2(mlx90614_t *p_mlx);
-
-bool
-get_ta(mlx90614_t *p_mlx);
-
-bool
-get_tomax(mlx90614_t *p_mlx);
-
-bool
-get_tomin(mlx90614_t *p_mlx);
-
-int16_t
-convert_temp_unit_to_linear(mlx90614_t *p_mlx, float united_temp);
-
-float
-convert_temp_linear_to_unit(mlx90614_t *p_mlx, int16_t linear_temp);
-
+static float
+convert_temp_linear_to_unit(int16_t linear_temp, mlx_temperature_unit unit);
 
 /*******************************************************************************
 * Global variables
@@ -78,14 +63,11 @@ mlx90614_t
     {
         p_mlx->i2c_fd = i2c_fd;
         p_mlx->i2c_addr = i2c_addr;
-
         p_mlx->temperature_unit = MLX_TEMP_CELSIUS;
 
         // Read device ID
         DEBUG_DEV("--- Reading sensor ID", __FUNCTION__, p_mlx);
-
-        mlx90614_read_id(p_mlx);
-
+        b_is_init_ok = mlx90614_get_id(p_mlx);
     }
 
     if (!b_is_init_ok)
@@ -111,7 +93,6 @@ mlx90614_set_temperature_unit(mlx90614_t *p_mlx, mlx_temperature_unit unit)
     p_mlx->temperature_unit = unit;
 }
 
-
 bool
 mlx90614_get_id(mlx90614_t *p_mlx)
 {
@@ -134,19 +115,113 @@ mlx90614_get_id(mlx90614_t *p_mlx)
     return b_result;
 }
 
+I2C_DeviceAddress
+mlx90614_get_address(mlx90614_t *p_mlx)
+{
+    int16_t addr;
+    I2C_DeviceAddress result = 0;
+
+    if (reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &addr))
+    {
+        result = (I2C_DeviceAddress) addr & 0xFF;
+    }
+    return result;
+}
 
 bool
-mlx90614_get_emissivity(mlx90614_t *p_mlx, float *p_emmisivity)
+mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address)
+{
+    bool b_result = false;
+
+    if ((address > 0x00) && (address < 0x80))
+    {
+        uint16_t temp_addr;
+
+        b_result = reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &temp_addr);
+
+        if (b_result)
+        {
+            temp_addr &= 0xFF00;    // Keep MSB, clear LSB
+            temp_addr |= (uint8_t) address;   // Set LSB to address
+
+            b_result = eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR, temp_addr);
+        }
+    }
+    else
+    {
+        ERROR("I2C Address not set: address out of range.", __FUNCTION__);
+    }
+
+    return b_result;
+}
+
+float
+mlx90614_get_temperature_object1(mlx90614_t *p_mlx)
+{
+    int16_t tobj1;
+    float result = MLX90614_TEMP_ERROR;
+
+    if (reg_read(p_mlx, MLX90614_RREG_TOBJ1, &tobj1))
+    {
+        if (tobj1 & 0x8000)
+        {
+            ERROR("Error flag set on object1 temperature.", __FUNCTION__);
+        }
+        else
+        {
+            result = convert_temp_linear_to_unit(tobj1, p_mlx->temperature_unit);
+        }
+    }
+
+    return result;
+}
+
+float
+mlx90614_get_temperature_object2(mlx90614_t *p_mlx)
+{
+    int16_t tobj2;
+    float result = MLX90614_TEMP_ERROR;
+
+    if (reg_read(p_mlx, MLX90614_RREG_TOBJ2, &tobj2))
+    {
+        if (tobj2 & 0x8000)
+        {
+            ERROR("Error flag set on object2 temperature.", __FUNCTION__);
+        }
+        else
+        {
+            result = convert_temp_linear_to_unit(tobj2, p_mlx->temperature_unit);
+        }
+    }
+
+    return result;
+}
+
+float
+mlx90614_get_temperature_ambient(mlx90614_t *p_mlx)
+{
+    int16_t ta;
+    float result = MLX90614_TEMP_ERROR;
+
+    if (reg_read(p_mlx, MLX90614_RREG_TA, &ta))
+    {
+        result = convert_temp_linear_to_unit(ta, p_mlx->temperature_unit);
+    }
+
+    return result;
+}
+
+float
+mlx90614_get_emissivity(mlx90614_t *p_mlx)
 {
     int16_t ecc;
+    float result = MLX90614_EMISSIVITY_ERROR;
 
-    bool b_result = reg_read(p_mlx, MLX90614_EREG_ECC, &ecc);
-
-    if (b_result)
+    if (reg_read(p_mlx, MLX90614_EREG_ECC, &ecc))
     {
-        *p_emmisivity = (float)ecc / 65535.0;
+        result = (float)ecc / 65535.0;
     }
-    return b_result;
+    return result;
 }
 
 bool
@@ -165,220 +240,107 @@ mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity)
 
         b_result = eeprom_write(p_mlx, MLX90614_EREG_ECC, (int16_t)ecc);
     }
-
-    return b_result;
-}
-
-bool
-mlx90614_get_address(mlx90614_t *p_mlx, uint8_t *p_address)
-{
-    int16_t addr;
-
-    bool b_result = reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &addr);
-
-    if (b_result)
-    {
-        *p_address = (uint8_t) addr & 0xFF;
-    }
-    return b_result;
-}
-
-bool
-mlx90614_set_address(mlx90614_t *p_mlx, uint8_t address)
-{
-    bool b_result = false;
-
-    if ((address > 0x00) && (address < 0x80))
-    {
-        uint16_t temp_addr;
-
-        b_result = reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &temp_addr);
-
-        if (b_result)
-        {
-            temp_addr &= 0xFF00;    // Keep MSB, clear LSB
-            temp_addr |= address;   // Set LSB to address
-
-            b_result = eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR, temp_addr);
-        }
-    }
     else
     {
-        ERROR("I2C Address not set: address out of range.", __FUNCTION__);
+        ERROR("Emissivity not set: value out of range.", __FUNCTION__);
     }
 
     return b_result;
 }
 
-bool
-mlx90614_set_tomax(mlx90614_t *p_mlx, float temp_max)
+float
+mlx90614_get_tobj_range_min(mlx90614_t *p_mlx)
 {
-    int16_t linear_max = convert_temp_unit_to_linear(p_mlx, temp_max);
+    int16_t tomin;
+    float result = MLX90614_TEMP_ERROR;
 
-    return eeprom_write(p_mlx, MLX90614_EREG_TOMAX, linear_max);
+    if (reg_read(p_mlx, MLX90614_EREG_TOMIN, &tomin))
+    {
+        result = convert_temp_linear_to_unit(tomin, p_mlx->temperature_unit);
+    }
+
+    return result;
 }
 
 bool
-mlx90614_set_tomin(mlx90614_t *p_mlx, float temp_min)
+mlx90614_set_tobj_range_min(mlx90614_t *p_mlx, float t_min)
 {
-    int16_t linear_min = convert_temp_unit_to_linear(p_mlx, temp_min);
-
+    int16_t linear_min = convert_temp_unit_to_linear(t_min,
+        p_mlx->temperature_unit);
     return eeprom_write(p_mlx, MLX90614_EREG_TOMIN, linear_min);
 }
 
-bool
-mlx90614_read_temperatures(mlx90614_t *p_mlx)
+float
+mlx90614_get_tobj_range_max(mlx90614_t *p_mlx)
 {
-    bool b_result = false;
+    int16_t tomax;
+    float result = MLX90614_TEMP_ERROR;
 
-    if (get_tobj1(p_mlx) && get_tobj2(p_mlx) && get_ta(p_mlx))
+    if (reg_read(p_mlx, MLX90614_EREG_TOMAX, &tomax))
     {
-        b_result = true;
+        result = convert_temp_linear_to_unit(tomax, p_mlx->temperature_unit);
     }
 
-    return b_result;
+    return result;
 }
 
 bool
-mlx90614_read_range(mlx90614_t *p_mlx)
+mlx90614_set_tobj_range_max(mlx90614_t *p_mlx, float t_max)
 {
-    bool b_result = false;
-
-    if (get_tomax(p_mlx) && get_tomin(p_mlx) && get_ta(p_mlx))
-    {
-        b_result = true;
-    }
-
-    return b_result;
+    int16_t linear_max = convert_temp_unit_to_linear(t_max, 
+        p_mlx->temperature_unit);
+    return eeprom_write(p_mlx, MLX90614_EREG_TOMAX, linear_max);
 }
 
+float
+mlx90614_get_ta_range_min(mlx90614_t *p_mlx)
+{
+    uint16_t tarange;
+    float result = MLX90614_TEMP_ERROR;
+
+    if (reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
+    {
+        result = convert_temp_linear_to_unit((tarange & 0x00FF), 
+            p_mlx->temperature_unit);
+    }
+    return result;
+}
+
+float
+mlx90614_get_ta_range_max(mlx90614_t *p_mlx)
+{
+    uint16_t tarange;
+    float result = MLX90614_TEMP_ERROR;
+
+    if (reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
+    {
+        result = convert_temp_linear_to_unit((tarange >> 8), 
+            p_mlx->temperature_unit);
+    }
+    return result;
+}
 
 /*******************************************************************************
 * Private function definitions
 *******************************************************************************/
 
-bool
-get_tobj1(mlx90614_t *p_mlx)
-{
-    int16_t tobj1;
-
-    bool b_result = reg_read(p_mlx, MLX90614_RREG_TOBJ1, &tobj1);
-
-    if (b_result)
-    {
-        if (tobj1 & 0x8000)
-        {
-            b_result = false;
-        }
-        else
-        {
-            p_mlx->tobj1 = tobj1;
-        }
-    }
-
-    return b_result;
-}
-
-bool
-get_tobj2(mlx90614_t *p_mlx)
-{
-    int16_t tobj2;
-
-    bool b_result = reg_read(p_mlx, MLX90614_RREG_TOBJ2, &tobj2);
-
-    if (b_result)
-    {
-        if (tobj2 & 0x8000)
-        {
-            b_result = false;
-        }
-        else
-        {
-            p_mlx->tobj2 = tobj2;
-        }
-    }
-
-    return b_result;
-}
-
-bool
-get_ta(mlx90614_t *p_mlx)
-{
-    int16_t ta;
-
-    bool b_result = reg_read(p_mlx, MLX90614_RREG_TA, &ta);
-
-    if (b_result)
-    {
-        p_mlx->tobj2 = ta;
-    }
-
-    return b_result;
-}
-
-bool
-get_tomax(mlx90614_t *p_mlx)
-{
-    int16_t tomax;
-
-    bool b_result = reg_read(p_mlx, MLX90614_EREG_TOMAX, &tomax);
-
-    if (b_result)
-    {
-        p_mlx->tomax = tomax;
-    }
-
-    return b_result;
-}
-
-bool
-get_tomin(mlx90614_t *p_mlx)
-{
-    int16_t tomin;
-
-    bool b_result = reg_read(p_mlx, MLX90614_EREG_TOMIN, &tomin);
-
-    if (b_result)
-    {
-        p_mlx->tomin = tomin;
-    }
-
-    return b_result;
-}
-
-bool
-get_ta_range(mlx90614_t *p_mlx)
-{
-    uint16_t ta_range;
-
-    bool b_result = reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &ta_range);
-
-    if (b_result)
-    {
-        p_mlx->ta_range = ta_range;
-    }
-
-    return b_result;
-}
-
-
-int16_t
-convert_temp_unit_to_linear(mlx90614_t *p_mlx, float united_temp)
+static int16_t
+convert_temp_unit_to_linear(float united_temp, mlx_temperature_unit unit)
 {
     int16_t linear_temp;
     float kelvin_temp;
 
-    if (p_mlx->temperature_unit == MLX_TEMP_LINEARIZED)
+    if (unit == MLX_TEMP_LINEARIZED)
     {
         linear_temp = (int16_t)united_temp;
     }
     else
     {
-        if (p_mlx->temperature_unit == MLX_TEMP_FAHRENHEIT)
+        if (unit == MLX_TEMP_FAHRENHEIT)
         {
             kelvin_temp = (united_temp - 32.0) * 5.0 / 9.0 + 273.15;
         }
-        else if (p_mlx->temperature_unit == MLX_TEMP_CELSIUS)
+        else if (unit == MLX_TEMP_CELSIUS)
         {
             kelvin_temp = united_temp + 273.15;
         }
@@ -393,12 +355,12 @@ convert_temp_unit_to_linear(mlx90614_t *p_mlx, float united_temp)
     return linear_temp;
 }
 
-float
-convert_temp_linear_to_unit(mlx90614_t *p_mlx, int16_t linear_temp)
+static float
+convert_temp_linear_to_unit(int16_t linear_temp, mlx_temperature_unit unit)
 {
     float united_temp;
 
-    if (p_mlx->temperature_unit == MLX_TEMP_LINEARIZED)
+    if (unit == MLX_TEMP_LINEARIZED)
     {
         united_temp = (float)linear_temp;
     }
@@ -406,11 +368,11 @@ convert_temp_linear_to_unit(mlx90614_t *p_mlx, int16_t linear_temp)
     {
         united_temp = (float)linear_temp * 0.02;
 
-        if (p_mlx->temperature_unit != MLX_TEMP_KELVIN)
+        if (unit != MLX_TEMP_KELVIN)
         {
             united_temp -= 273.15;
 
-            if (p_mlx->temperature_unit == MLX_TEMP_FAHRENHEIT)
+            if (unit == MLX_TEMP_FAHRENHEIT)
             {
                 united_temp = united_temp * 9.0 / 5.0 + 32;
             }
