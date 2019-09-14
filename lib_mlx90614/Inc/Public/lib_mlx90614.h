@@ -2,11 +2,13 @@
 * @file    lib_mlx90614.h
 * @version 1.0.0
 *
-* @brief .
+* @brief MLX90614 IR sensor support for Azure Sphere.
+*
+* Code ported and modified
+* from https://github.com/sparkfun/SparkFun_MLX90614_Arduino_Library
+* by Jim Lindblom @ SparkFun Electronics
 *
 * @author   Jaroslav Groman
-*
-* @date
 *
 *******************************************************************************/
 
@@ -59,19 +61,18 @@ extern "C" {
 #define MLX90614_CMD_READ_FLAGS      0xF0
 #define MLX90614_CMD_SLEEP_MODE      0xFF
 
-
 // Value to indicate error when processing temperature measurement
-#define MLX90614_TEMP_ERROR         -999.9
+#define MLX90614_TEMP_ERROR         -999.9F
 
 // Value to indicate error when processing emissivity
-#define MLX90614_EMISSIVITY_ERROR   -1.0
+#define MLX90614_EMISSIVITY_ERROR   -1.0F
 
 // READ_FLAGS bitfields
-typedef struct
+typedef struct mlx90614_read_flags_struct
 {
     union
     {
-        struct
+        struct mlx90614_read_flags_bitfields
         {
             uint8_t RSVD0 : 3;      // All zeros
             uint8_t RSVD3 : 1;      // Not implemented
@@ -89,18 +90,17 @@ typedef struct
             uint8_t EEBUSY : 1;
 
             uint8_t RSVD8 : 8;      // All zeros
-
         };
         uint16_t word;
     };
 } mlx90614_read_flags_t;
 
 // PWMCTRL bitfields
-typedef struct
+typedef struct mlx90614_pwmctrl_struct
 {
     union
     {
-        struct
+        struct mlx90614_pwmctrl_bitfields
         {
             // 0 - PWM extended mode. 1 - PWM single mode
             uint8_t PWM_MODE : 1;
@@ -126,11 +126,11 @@ typedef struct
 } mlx90614_pwmctrl_t;
 
 // CONF1 bitfields
-typedef struct
+typedef struct mlx90614_conf1_struct
 {
     union
     {
-        struct
+        struct mlx90614_conf1_bitfields
         {
             // IIR filter parameter set
             uint8_t IIR : 3;
@@ -138,6 +138,7 @@ typedef struct
             // DO NOT MODIFY! This will cancel the factory calibration.
             uint8_t RPT_SENSOR_TEST : 1;
 
+            // Active IR sensor selector
             uint8_t T_SEL : 2;
 
             // 0 - Single IR sensor, 1 - Dual IR sensor
@@ -185,6 +186,7 @@ typedef struct
 #define CONF1_FIR_512     6   // FIR = 512
 #define CONF1_FIR_1024    7   // FIR = 1024
 
+// MLX90614 temperature measurement units
 typedef enum {
     MLX_TEMP_LINEARIZED,
     MLX_TEMP_KELVIN,
@@ -192,6 +194,7 @@ typedef enum {
     MLX_TEMP_FAHRENHEIT
 } mlx_temperature_unit;
 
+// MLX90614 sensor device descriptor
 typedef struct mlx90614_struct
 {
     int i2c_fd;                             // I2C interface file descriptor
@@ -202,6 +205,7 @@ typedef struct mlx90614_struct
 
 /**
  * @brief Initialize MLX90614 sensor.
+ *
  * @param i2c_fd I2C interface file descriptor.
  * @param i2c_addr Sensor I2C address.
  *
@@ -212,60 +216,157 @@ mlx90614_t
 
 /**
  * @brief Disables sensor and frees allocated resources.
+ *
  * @param p_mlx Pointer to MLX90614 device descriptor.
  */
 void
 mlx90614_close(mlx90614_t *p_mlx);
 
+/**
+ * @brief Sets the temperature unit used for measurement output.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ * @param unit Temperature measurement unit.
+ */
 void
 mlx90614_set_temperature_unit(mlx90614_t *p_mlx, mlx_temperature_unit unit);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return True on success, false on failure.
+ */
 bool
 mlx90614_get_id(mlx90614_t *p_mlx);
 
+/**
+ * @brief Get sensor I2C device address.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return Sensor I2C device address.
+ */
 I2C_DeviceAddress
 mlx90614_get_address(mlx90614_t *p_mlx);
 
+/**
+ * @brief Set sensor I2C device address.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return True on success, false on failure.
+ */
 bool
 mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address);
 
+/**
+ * @brief Get IR1 sensor object temperature.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return Temperature measured by IR1 sensor.
+ */
 float
 mlx90614_get_temperature_object1(mlx90614_t *p_mlx);
 
+/**
+ * @brief Get IR2 sensor object temperature.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return Temperature measured by IR2 sensor.
+ */
 float
 mlx90614_get_temperature_object2(mlx90614_t *p_mlx);
 
+/**
+ * @brief Get ambient (sensor die) temperature.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return Ambient (sensor die) temperature.
+ */
 float
 mlx90614_get_temperature_ambient(mlx90614_t *p_mlx);
 
+/**
+ * @brief Get current object emissivity correction coefficient.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return Emissivity correction coefficient.
+ */
 float
 mlx90614_get_emissivity(mlx90614_t *p_mlx);
 
+/**
+ * @brief Set object emissivity correction.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ * @param emissivity Object emissivity correction coefficient 0.1 - 1.0.
+ *
+ * @return True on success, false on failure.
+ */
 bool
 mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity);
 
+/******************************************************************************/
+/* The following functions are used in PWM mode                               */
+/* Range params are used for customizing the temperature range for PWM output */
 
-// The following functions are useful only in PWM mode
-// Range params are used for customizing the temperature range for PWM output
-
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ */
 float
 mlx90614_get_tobj_range_min(mlx90614_t *p_mlx);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return True on success, false on failure.
+ */
 bool
 mlx90614_set_tobj_range_min(mlx90614_t *p_mlx, float t_min);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ */
 float
 mlx90614_get_tobj_range_max(mlx90614_t *p_mlx);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ *
+ * @return True on success, false on failure.
+ */
 bool
 mlx90614_set_tobj_range_max(mlx90614_t *p_mlx, float t_max);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ */
 float
 mlx90614_get_ta_range_min(mlx90614_t *p_mlx);
 
+/**
+ * @brief .
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ */
 float
 mlx90614_get_ta_range_max(mlx90614_t *p_mlx);
-
 
 #ifdef __cplusplus
 }

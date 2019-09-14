@@ -10,8 +10,6 @@
 *
 * @author   Jaroslav Groman
 *
-* @date
-*
 *******************************************************************************/
 
 #include <stdbool.h>
@@ -30,16 +28,27 @@
 * Forward declarations of private functions
 *******************************************************************************/
 
+/**
+ * @brief Convert temperature from units to linearized value.
+ *
+ * @param united_temp Temperature value in units.
+ * @param unit Temperature unit.
+ *
+ * @return Linearized temperature value.
+ */
 static int16_t
 convert_temp_unit_to_linear(float united_temp, mlx_temperature_unit unit);
 
+/**
+ * @brief Convert temperature from linearized value to units.
+ *
+ * @param united_temp Linearized temperature value.
+ * @param unit Temperature unit.
+ *
+ * @return Temperature value in units.
+ */
 static float
 convert_temp_linear_to_unit(int16_t linear_temp, mlx_temperature_unit unit);
-
-/*******************************************************************************
-* Global variables
-*******************************************************************************/
-
 
 /*******************************************************************************
 * Function definitions
@@ -142,9 +151,12 @@ mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address)
         if (b_result)
         {
             temp_addr &= 0xFF00;    // Keep MSB, clear LSB
-            temp_addr |= (uint8_t) address;   // Set LSB to address
 
-            b_result = eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR, temp_addr);
+            // Set LSB to address
+            temp_addr = temp_addr | (uint16_t) address;
+
+            b_result = eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR, 
+                (int16_t) temp_addr);
         }
     }
     else
@@ -169,7 +181,8 @@ mlx90614_get_temperature_object1(mlx90614_t *p_mlx)
         }
         else
         {
-            result = convert_temp_linear_to_unit(tobj1, p_mlx->temperature_unit);
+            result = convert_temp_linear_to_unit(tobj1, 
+                p_mlx->temperature_unit);
         }
     }
 
@@ -190,7 +203,8 @@ mlx90614_get_temperature_object2(mlx90614_t *p_mlx)
         }
         else
         {
-            result = convert_temp_linear_to_unit(tobj2, p_mlx->temperature_unit);
+            result = convert_temp_linear_to_unit(tobj2, 
+                p_mlx->temperature_unit);
         }
     }
 
@@ -219,7 +233,7 @@ mlx90614_get_emissivity(mlx90614_t *p_mlx)
 
     if (reg_read(p_mlx, MLX90614_EREG_ECC, &ecc))
     {
-        result = (float)ecc / 65535.0;
+        result = (float)ecc / 65535.0F;
     }
     return result;
 }
@@ -314,7 +328,7 @@ mlx90614_get_ta_range_max(mlx90614_t *p_mlx)
 
     if (reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
     {
-        result = convert_temp_linear_to_unit((tarange >> 8), 
+        result = convert_temp_linear_to_unit((uint8_t)(tarange >> 8), 
             p_mlx->temperature_unit);
     }
     return result;
@@ -338,11 +352,11 @@ convert_temp_unit_to_linear(float united_temp, mlx_temperature_unit unit)
     {
         if (unit == MLX_TEMP_FAHRENHEIT)
         {
-            kelvin_temp = (united_temp - 32.0) * 5.0 / 9.0 + 273.15;
+            kelvin_temp = (united_temp - 32.0F) * 5.0F / 9.0F + 273.15F;
         }
         else if (unit == MLX_TEMP_CELSIUS)
         {
-            kelvin_temp = united_temp + 273.15;
+            kelvin_temp = united_temp + 273.15F;
         }
         else  // p_mlx->temperature_unit == MLX_TEMP_KELVIN
         {
@@ -366,15 +380,15 @@ convert_temp_linear_to_unit(int16_t linear_temp, mlx_temperature_unit unit)
     }
     else
     {
-        united_temp = (float)linear_temp * 0.02;
+        united_temp = (float)linear_temp * 0.02F;
 
         if (unit != MLX_TEMP_KELVIN)
         {
-            united_temp -= 273.15;
+            united_temp -= 273.15F;
 
             if (unit == MLX_TEMP_FAHRENHEIT)
             {
-                united_temp = united_temp * 9.0 / 5.0 + 32;
+                united_temp = united_temp * 9.0F / 5.0F + 32;
             }
         }
     }

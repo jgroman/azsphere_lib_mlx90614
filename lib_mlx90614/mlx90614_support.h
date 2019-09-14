@@ -1,4 +1,12 @@
-
+/***************************************************************************//**
+* @file    mlx90614_support.h
+* @version 1.0.0
+*
+* @brief Support functions for MLX90614 IR sensor Azure Sphere library.
+*
+* @author   Jaroslav Groman
+*
+*******************************************************************************/
 
 #ifndef _MLX90614_COMMON_H_
 #define _MLX90614_COMMON_H_
@@ -20,11 +28,20 @@ extern "C" {
 #define ERROR(s, f, ...) log_printf("%s %s: " s "\n", "MLX90614", f, ## __VA_ARGS__)
 
 // Uncomment line below to see I2C debug data
-#define MLX90614_I2C_DEBUG
+// #define MLX90614_I2C_DEBUG
 
-#define MLX90614_T_ERASE_MS     5   // Erase EEPROM cell time
-#define MLX90614_T_WRITE_MS     5   // Write EEPROM cell time
+#define MLX90614_T_ERASE_MS     5   // Erase EEPROM cell delay
+#define MLX90614_T_WRITE_MS     5   // Write EEPROM cell delay
 
+/**
+ * @brief Platform dependent log print function.
+ *
+ * @param p_format The message string to log.
+ * @param ... Argument list.
+ *
+ * @result 0 for success, or -1 for failure, in which case errno is set 
+ * to the error value.
+ */
 int
 log_printf(const char *p_format, ...);
 

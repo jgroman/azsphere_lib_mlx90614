@@ -41,6 +41,7 @@
     <TargetHardwareDefinition>project_hardware.json</TargetHardwareDefinition>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="epoll_timerfd_utilities.c" />
     <ClCompile Include="main.c" />
     <UpToDateCheckInput Include="app_manifest.json" />
   </ItemGroup>
@@ -48,6 +49,9 @@
     <ProjectReference Include="..\..\lib_mlx90614\lib_mlx90614.vcxproj">
       <Project>{f67ab3f8-c86a-49d4-b938-e513824a7c72}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="epoll_timerfd_utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

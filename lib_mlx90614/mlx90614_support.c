@@ -1,3 +1,13 @@
+/***************************************************************************//**
+* @file    mlx90614_support.c
+* @version 1.0.0
+*
+* @brief Support functions for MLX90614 IR sensor Azure Sphere library.
+*
+* @author   Jaroslav Groman
+*
+*******************************************************************************/
+
 #include <stdbool.h>
 #include <errno.h>
 #include <string.h>
@@ -13,20 +23,44 @@
 * Forward declarations of private functions
 *******************************************************************************/
 
+/**
+ * @brief Platform dependent I2C Read function.
+ *
+ * @param p_mlx Pointer to sensor device descriptor structure.
+ * @param reg_addr Register address to be read from.
+ * @param p_data Pointer to buffer for read data.
+ * @param data_len Number of bytes to be read.
+ *
+ * @result The number of bytes successfully read, or -1 for failure.
+ */
 static ssize_t
 i2c_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint8_t *p_data,
     uint32_t data_len);
 
+/**
+ * @brief Platform dependent I2C Write function.
+ *
+ * @param p_mlx Pointer to sensor device descriptor structure.
+ * @param reg_addr Register address to be written to.
+ * @param p_data Pointer to data to be transmitted.
+ * @param data_len Number of bytes to be transmitted.
+ *
+ * @result The number of bytes successfully written, or -1 for failure.
+ */
 static ssize_t
 i2c_write(mlx90614_t *p_mlx, uint8_t reg_addr, const uint8_t *p_data,
     uint32_t data_len);
 
+/**
+ * @brief Calculate CRC-8 using X8 + X2 + X1 + 1 polynomial.
+ *
+ * @param prev_crc Result form previous CRC calculation.
+ * @param data Byte to be included to CRC calculation.
+ *
+ * @result CRC-8 calculation result.
+ */
 static uint8_t
 crc8(uint8_t prev_crc, uint8_t data);
-
-/*******************************************************************************
-* Global variables
-*******************************************************************************/
 
 /*******************************************************************************
 * Public function definitions
@@ -229,6 +263,5 @@ crc8(uint8_t prev_crc, uint8_t data)
     }
     return result;
 }
-
 
 /* [] END OF FILE */
