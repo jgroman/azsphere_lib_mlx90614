@@ -82,8 +82,11 @@ mlx90614_t
     if (!b_is_init_ok)
     {
         ERROR("MLX90614 initialization failed.", __FUNCTION__);
-        free(p_mlx);
-        p_mlx = NULL;
+        if (p_mlx)
+        {
+            free(p_mlx);
+            p_mlx = NULL;
+        }
     }
 
     return p_mlx;
@@ -93,7 +96,11 @@ void
 mlx90614_close(mlx90614_t *p_mlx)
 {
     // Free memory allocated to device decriptor
-    free(p_mlx);
+    if (p_mlx)
+    {
+        free(p_mlx);
+        p_mlx = NULL;
+    }
 }
 
 void

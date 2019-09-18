@@ -45,12 +45,39 @@ extern "C" {
 int
 log_printf(const char *p_format, ...);
 
+/**
+ * @brief Read MLX90614 register contents.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ * @param reg_addr Reagister address.
+ * @param p_reg_value Pointer to variable to store register contents.
+ *
+ * @result True for success, or false for failure.
+ */
 bool
 reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value);
 
+/**
+ * @brief Write value to MLX90614 RAM register.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ * @param reg_addr Reagister address.
+ * @param reg_value Value to write.
+ *
+ * @result True for success, or false for failure.
+ */
 bool
 reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 
+/**
+ * @brief Write value to MLX90614 EEPROM register.
+ *
+ * @param p_mlx Pointer to MLX90614 device descriptor.
+ * @param reg_addr Reagister address.
+ * @param reg_value Value to write.
+ *
+ * @result True for success, or false for failure.
+ */
 bool
 eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 

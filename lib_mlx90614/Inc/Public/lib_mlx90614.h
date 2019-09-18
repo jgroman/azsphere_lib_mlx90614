@@ -72,7 +72,7 @@ typedef struct mlx90614_read_flags_struct
 {
     union
     {
-        struct mlx90614_read_flags_bitfields
+        struct 
         {
             uint8_t RSVD0 : 3;      // All zeros
             uint8_t RSVD3 : 1;      // Not implemented
@@ -100,7 +100,7 @@ typedef struct mlx90614_pwmctrl_struct
 {
     union
     {
-        struct mlx90614_pwmctrl_bitfields
+        struct
         {
             // 0 - PWM extended mode. 1 - PWM single mode
             uint8_t PWM_MODE : 1;
@@ -130,7 +130,7 @@ typedef struct mlx90614_conf1_struct
 {
     union
     {
-        struct mlx90614_conf1_bitfields
+        struct
         {
             // IIR filter parameter set
             uint8_t IIR : 3;
