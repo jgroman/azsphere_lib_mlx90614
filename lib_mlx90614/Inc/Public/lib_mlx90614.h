@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <applibs/i2c.h>
 
