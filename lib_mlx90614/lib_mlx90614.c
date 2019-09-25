@@ -117,7 +117,7 @@ mlx90614_get_id(mlx90614_t *p_mlx)
 
     for (register uint8_t idx = 0; idx < 4; idx++)
     {
-        b_result = reg_read(p_mlx, (uint8_t)(MLX90614_EREG_ID1 + idx), 
+        b_result = mlx90614_reg_read(p_mlx, (uint8_t)(MLX90614_EREG_ID1 + idx),
             &reg_value);
 
         if (!b_result)
@@ -137,7 +137,7 @@ mlx90614_get_address(mlx90614_t *p_mlx)
     int16_t addr;
     I2C_DeviceAddress result = 0;
 
-    if (reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &addr))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &addr))
     {
         result = (I2C_DeviceAddress) addr & 0xFF;
     }
@@ -153,7 +153,8 @@ mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address)
     {
         uint16_t temp_addr;
 
-        b_result = reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, &temp_addr);
+        b_result = mlx90614_reg_read(p_mlx, MLX90614_EREG_SMBUS_ADDR, 
+            &temp_addr);
 
         if (b_result)
         {
@@ -162,7 +163,7 @@ mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address)
             // Set LSB to address
             temp_addr = temp_addr | (uint16_t) address;
 
-            b_result = eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR, 
+            b_result = mlx90614_eeprom_write(p_mlx, MLX90614_EREG_SMBUS_ADDR,
                 (int16_t) temp_addr);
         }
     }
@@ -180,7 +181,7 @@ mlx90614_get_temperature_object1(mlx90614_t *p_mlx)
     int16_t tobj1;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_RREG_TOBJ1, &tobj1))
+    if (mlx90614_reg_read(p_mlx, MLX90614_RREG_TOBJ1, &tobj1))
     {
         if (tobj1 & 0x8000)
         {
@@ -202,7 +203,7 @@ mlx90614_get_temperature_object2(mlx90614_t *p_mlx)
     int16_t tobj2;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_RREG_TOBJ2, &tobj2))
+    if (mlx90614_reg_read(p_mlx, MLX90614_RREG_TOBJ2, &tobj2))
     {
         if (tobj2 & 0x8000)
         {
@@ -224,7 +225,7 @@ mlx90614_get_temperature_ambient(mlx90614_t *p_mlx)
     int16_t ta;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_RREG_TA, &ta))
+    if (mlx90614_reg_read(p_mlx, MLX90614_RREG_TA, &ta))
     {
         result = convert_temp_linear_to_unit(ta, p_mlx->temperature_unit);
     }
@@ -238,7 +239,7 @@ mlx90614_get_emissivity(mlx90614_t *p_mlx)
     int16_t ecc;
     float result = MLX90614_EMISSIVITY_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_EREG_ECC, &ecc))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_ECC, &ecc))
     {
         result = (float)ecc / 65535.0F;
     }
@@ -259,7 +260,7 @@ mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity)
             ecc = 0x2000;
         }
 
-        b_result = eeprom_write(p_mlx, MLX90614_EREG_ECC, (int16_t)ecc);
+        b_result = mlx90614_eeprom_write(p_mlx, MLX90614_EREG_ECC, (int16_t)ecc);
     }
     else
     {
@@ -275,7 +276,7 @@ mlx90614_get_tobj_range_min(mlx90614_t *p_mlx)
     int16_t tomin;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_EREG_TOMIN, &tomin))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_TOMIN, &tomin))
     {
         result = convert_temp_linear_to_unit(tomin, p_mlx->temperature_unit);
     }
@@ -288,7 +289,7 @@ mlx90614_set_tobj_range_min(mlx90614_t *p_mlx, float t_min)
 {
     int16_t linear_min = convert_temp_unit_to_linear(t_min,
         p_mlx->temperature_unit);
-    return eeprom_write(p_mlx, MLX90614_EREG_TOMIN, linear_min);
+    return mlx90614_eeprom_write(p_mlx, MLX90614_EREG_TOMIN, linear_min);
 }
 
 float
@@ -297,7 +298,7 @@ mlx90614_get_tobj_range_max(mlx90614_t *p_mlx)
     int16_t tomax;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_EREG_TOMAX, &tomax))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_TOMAX, &tomax))
     {
         result = convert_temp_linear_to_unit(tomax, p_mlx->temperature_unit);
     }
@@ -310,7 +311,7 @@ mlx90614_set_tobj_range_max(mlx90614_t *p_mlx, float t_max)
 {
     int16_t linear_max = convert_temp_unit_to_linear(t_max, 
         p_mlx->temperature_unit);
-    return eeprom_write(p_mlx, MLX90614_EREG_TOMAX, linear_max);
+    return mlx90614_eeprom_write(p_mlx, MLX90614_EREG_TOMAX, linear_max);
 }
 
 float
@@ -319,7 +320,7 @@ mlx90614_get_ta_range_min(mlx90614_t *p_mlx)
     uint16_t tarange;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
     {
         result = convert_temp_linear_to_unit((tarange & 0x00FF), 
             p_mlx->temperature_unit);
@@ -333,7 +334,7 @@ mlx90614_get_ta_range_max(mlx90614_t *p_mlx)
     uint16_t tarange;
     float result = MLX90614_TEMP_ERROR;
 
-    if (reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
+    if (mlx90614_reg_read(p_mlx, MLX90614_EREG_TA_RANGE, &tarange))
     {
         result = convert_temp_linear_to_unit((uint8_t)(tarange >> 8), 
             p_mlx->temperature_unit);

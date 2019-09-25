@@ -18,14 +18,17 @@ extern "C" {
 #include "lib_mlx90614.h"
 
 #ifdef MLX90614_DEBUG
-#define DEBUG(s, f, ...) log_printf("%s %s: " s "\n", "MLX", f, ## __VA_ARGS__)
-#define DEBUG_DEV(s, f, d, ...) log_printf("%s %s (0x%02X): " s "\n", "MLX", f, d->i2c_addr, ## __VA_ARGS__)
+#define DEBUG(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX", f, \
+                                                ## __VA_ARGS__)
+#define DEBUG_DEV(s, f, d, ...) mlx90614_log_printf("%s %s (0x%02X): " s "\n", \
+                                          "MLX", f, d->i2c_addr, ## __VA_ARGS__)
 #else
 #define DEBUG(s, f, ...)
 #define DEBUG_DEV(s, f, d, ...)
 #endif // MLX90614_DEBUG
 
-#define ERROR(s, f, ...) log_printf("%s %s: " s "\n", "MLX90614", f, ## __VA_ARGS__)
+#define ERROR(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX90614", f, \
+                                                ## __VA_ARGS__)
 
 // Uncomment line below to see I2C debug data
 // #define MLX90614_I2C_DEBUG
@@ -43,7 +46,7 @@ extern "C" {
  * to the error value.
  */
 int
-log_printf(const char *p_format, ...);
+mlx90614_log_printf(const char *p_format, ...);
 
 /**
  * @brief Read MLX90614 register contents.
@@ -55,7 +58,7 @@ log_printf(const char *p_format, ...);
  * @result True for success, or false for failure.
  */
 bool
-reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value);
+mlx90614_reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value);
 
 /**
  * @brief Write value to MLX90614 RAM register.
@@ -67,7 +70,7 @@ reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value);
  * @result True for success, or false for failure.
  */
 bool
-reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
+mlx90614_reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 
 /**
  * @brief Write value to MLX90614 EEPROM register.
@@ -79,7 +82,7 @@ reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
  * @result True for success, or false for failure.
  */
 bool
-eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
+mlx90614_eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value);
 
 #ifdef __cplusplus
 }

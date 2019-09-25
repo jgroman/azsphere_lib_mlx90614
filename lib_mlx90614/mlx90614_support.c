@@ -67,7 +67,7 @@ crc8(uint8_t prev_crc, uint8_t data);
 *******************************************************************************/
 
 int
-log_printf(const char *p_format, ...)
+mlx90614_log_printf(const char *p_format, ...)
 {
     va_list args;
 
@@ -79,7 +79,7 @@ log_printf(const char *p_format, ...)
 }
 
 bool
-reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value)
+mlx90614_reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value)
 {
     // 2 byte register data is followed by 1 byte PEC - Packet Error Code
     // The PEC calculation includes all bits except the START, REPEATED START, 
@@ -109,7 +109,7 @@ reg_read(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t *p_reg_value)
 }
 
 bool
-reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
+mlx90614_reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
 {
     bool b_result = false;
     uint8_t buffer[3];  // LSB, MSB, CRC
@@ -131,7 +131,7 @@ reg_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
 }
 
 bool
-eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
+mlx90614_eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
 {
     // Note: A write of 0x0000 must be done prior to writing in EEPROM in order 
     // to erase the EEPROM cell content
@@ -139,13 +139,13 @@ eeprom_write(mlx90614_t *p_mlx, uint8_t reg_addr, int16_t reg_value)
     struct timespec delay_time;
     delay_time.tv_sec = 0;
 
-    bool b_result = reg_write(p_mlx, reg_addr, 0);
+    bool b_result = mlx90614_reg_write(p_mlx, reg_addr, 0);
     delay_time.tv_nsec = MLX90614_T_ERASE_MS * 1000000;
     nanosleep(&delay_time, NULL);   // Wait for EEPROM to erase
 
     if (b_result)
     {
-        b_result = reg_write(p_mlx, reg_addr, reg_value);
+        b_result = mlx90614_reg_write(p_mlx, reg_addr, reg_value);
         delay_time.tv_nsec = MLX90614_T_WRITE_MS * 1000000;
         nanosleep(&delay_time, NULL);   // Wait for EEPROM to write new value
     }
