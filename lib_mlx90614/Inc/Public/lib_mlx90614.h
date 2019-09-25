@@ -25,7 +25,7 @@ extern "C" {
 #include <applibs/i2c.h>
 
 // Uncomment line below to enable debugging messages
-#define MLX90614_DEBUG
+//#define MLX90614_DEBUG
 
 #define MLX90614_I2C_ADDRESS    0x5A
 
