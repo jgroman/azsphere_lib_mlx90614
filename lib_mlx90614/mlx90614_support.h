@@ -18,17 +18,17 @@ extern "C" {
 #include "lib_mlx90614.h"
 
 #ifdef MLX90614_DEBUG
-#define DEBUG(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX", f, \
-                                                ## __VA_ARGS__)
-#define DEBUG_DEV(s, f, d, ...) mlx90614_log_printf("%s %s (0x%02X): " s "\n", \
-                                          "MLX", f, d->i2c_addr, ## __VA_ARGS__)
+#define MLX_DEBUG(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX", f, \
+                                                                 ## __VA_ARGS__)
+#define MLX_DEBUG_DEV(s, f, d, ...) mlx90614_log_printf("%s %s (0x%02X): " s \
+                                    "\n", "MLX", f, d->i2c_addr, ## __VA_ARGS__)
 #else
-#define DEBUG(s, f, ...)
-#define DEBUG_DEV(s, f, d, ...)
+#define MLX_DEBUG(s, f, ...)
+#define MLX_DEBUG_DEV(s, f, d, ...)
 #endif // MLX90614_DEBUG
 
-#define ERROR(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX90614", f, \
-                                                ## __VA_ARGS__)
+#define MLX_ERROR(s, f, ...) mlx90614_log_printf("%s %s: " s "\n", "MLX90614", \
+                                                              f, ## __VA_ARGS__)
 
 // Uncomment line below to see I2C debug data
 // #define MLX90614_I2C_DEBUG

@@ -166,8 +166,8 @@ i2c_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint8_t *p_data,
     if (p_mlx && p_data)
     {
 #   	ifdef MLX90614_I2C_DEBUG
-        DEBUG_DEV(" REG READ [%02X] bytes %d", __FUNCTION__, p_mlx, reg_addr,
-            data_len);
+        MLX_DEBUG_DEV(" REG READ [%02X] bytes %d", __FUNCTION__, p_mlx, 
+            reg_addr, data_len);
 #       endif
 
         // Select register and read its data
@@ -177,7 +177,7 @@ i2c_read(mlx90614_t *p_mlx, uint8_t reg_addr, uint8_t *p_data,
         if (result == -1)
         {
 #   	    ifdef MLX90614_I2C_DEBUG
-            DEBUG_DEV("Error %d (%s) on I2C WR operation at addr 0x%02X",
+            MLX_DEBUG_DEV("Error %d (%s) on I2C WR operation at addr 0x%02X",
                 __FUNCTION__, p_mlx, errno, strerror(errno), p_mlx->i2c_addr);
 #           endif
         }
@@ -207,8 +207,8 @@ i2c_write(mlx90614_t *p_mlx, uint8_t reg_addr, const uint8_t *p_data,
     if (p_mlx && p_data)
     {
 #   	ifdef MLX90614_I2C_DEBUG
-        DEBUG_DEV(" REG WRITE [%02X] bytes %d", __FUNCTION__, p_mlx, reg_addr,
-            data_len);
+        MLX_DEBUG_DEV(" REG WRITE [%02X] bytes %d", __FUNCTION__, p_mlx, 
+            reg_addr, data_len);
 #       endif
 
         uint8_t buffer[data_len + 1];
@@ -235,9 +235,9 @@ i2c_write(mlx90614_t *p_mlx, uint8_t reg_addr, const uint8_t *p_data,
         if (result == -1)
         {
 #		    ifdef MLX90614_I2C_DEBUG
-            DEBUG_DEV("Error %d (%s) on writing %d byte(s) to I2C addr 0x%02X",
-                __FUNCTION__, p_mlx, errno, strerror(errno), data_len + 1,
-                p_mlx->i2c_addr);
+            MLX_DEBUG_DEV("Error %d (%s) on writing %d byte(s) to I2C addr "
+                "0x%02X", __FUNCTION__, p_mlx, errno, strerror(errno), 
+                data_len + 1, p_mlx->i2c_addr);
 #           endif
         }
     }

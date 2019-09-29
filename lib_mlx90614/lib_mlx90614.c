@@ -64,7 +64,7 @@ mlx90614_t
     {
         // Cannot allocate memory for device descriptor
         b_is_init_ok = false;
-        ERROR("Not enough free memory.", __FUNCTION__);
+        MLX_ERROR("Not enough free memory.", __FUNCTION__);
     }
 
     // Initialize device descriptor, check device ID
@@ -75,13 +75,13 @@ mlx90614_t
         p_mlx->temperature_unit = MLX_TEMP_CELSIUS;
 
         // Read device ID
-        DEBUG_DEV("--- Reading sensor ID", __FUNCTION__, p_mlx);
+        MLX_DEBUG_DEV("--- Reading sensor ID", __FUNCTION__, p_mlx);
         b_is_init_ok = mlx90614_get_id(p_mlx);
     }
 
     if (!b_is_init_ok)
     {
-        ERROR("MLX90614 initialization failed.", __FUNCTION__);
+        MLX_ERROR("MLX90614 initialization failed.", __FUNCTION__);
         if (p_mlx)
         {
             free(p_mlx);
@@ -169,7 +169,7 @@ mlx90614_set_address(mlx90614_t *p_mlx, I2C_DeviceAddress address)
     }
     else
     {
-        ERROR("I2C Address not set: address out of range.", __FUNCTION__);
+        MLX_ERROR("I2C Address not set: address out of range.", __FUNCTION__);
     }
 
     return b_result;
@@ -185,7 +185,7 @@ mlx90614_get_temperature_object1(mlx90614_t *p_mlx)
     {
         if (tobj1 & 0x8000)
         {
-            ERROR("Error flag set on object1 temperature.", __FUNCTION__);
+            MLX_ERROR("Error flag set on object1 temperature.", __FUNCTION__);
         }
         else
         {
@@ -207,7 +207,7 @@ mlx90614_get_temperature_object2(mlx90614_t *p_mlx)
     {
         if (tobj2 & 0x8000)
         {
-            ERROR("Error flag set on object2 temperature.", __FUNCTION__);
+            MLX_ERROR("Error flag set on object2 temperature.", __FUNCTION__);
         }
         else
         {
@@ -264,7 +264,7 @@ mlx90614_set_emissivity(mlx90614_t *p_mlx, float emissivity)
     }
     else
     {
-        ERROR("Emissivity not set: value out of range.", __FUNCTION__);
+        MLX_ERROR("Emissivity not set: value out of range.", __FUNCTION__);
     }
 
     return b_result;
