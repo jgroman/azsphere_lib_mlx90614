@@ -1,4 +1,5 @@
 # Azure Sphere MLX90614 Sensor Support Library
+This is MLX90614 IT thermometer sensor driver for Azure Sphere devices and kits.
 
 ## Importing
 1. Clone this repository to a local directory.
